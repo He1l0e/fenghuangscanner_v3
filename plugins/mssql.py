@@ -56,6 +56,7 @@ class mssql_burp(object):
             for ip in ipdict['mssql']:
                 pool.apply_async(func=self.mssq1,args=(str(ip).split(':')[0],int(str(ip).split(':')[1])))
 
+            pool=Pool(threads)
             pool.close()
             pool.join()
 
