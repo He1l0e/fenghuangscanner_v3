@@ -8,6 +8,10 @@ import time
 import threading
 from threading import Thread
 from rsynclib import *
+import sys
+import socket
+socket.setdefaulttimeout(10)
+sys.path.append("../")
 
 class rsync_burp(object):
 
@@ -15,7 +19,6 @@ class rsync_burp(object):
         self.config=c
         self.lock=threading.Lock()
         self.result=[]
-        self.lines=self.config.file2list("conf/rsync.conf")
         self.sp=Queue()
 
     def get_ver(self,host):
@@ -25,7 +28,7 @@ class rsync_burp(object):
         return r.server_protocol_version
 
 
-    def rsync_connect(self,ip,username,password,port):
+    def rsync_connect(self,ip,port):
         creak=0
         try:
             ver=self.get_ver(ip)# get rsync moudle
@@ -39,61 +42,26 @@ class rsync_burp(object):
 
             modules = []
             for line in resp.split('\n'):
+                #print line
                 modulename = line[:line.find(' ')]
                 if modulename:
                     if modulename !='@RSYNCD:':
+                        self.lock.acquire()
+                        printGreen("%s rsync at %s find a module:%s\r\n" %(ip,port,modulename))
+                        self.result.append("%s rsync at %s find a module:%s\r\n" %(ip,port,modulename))               
+                        #print "find %s module in %s at %s" %(modulename,ip,port)
+                        self.lock.release()
                         modules.append(modulename)
 
-            if len(modules)!=0:
-                for modulename in modules:
-                    self.lock.acquire()
-                    print "find %s module in %s at %s" %(modulename,ip,port)
-                    self.lock.release()
-
-                    rs = rsync(ip)
-                    res = rs.login(module=modulename,user=username,passwd=password)
-                    if re.findall('.*OK.*',res):
-                        rs.close()
-                        creak=1
-                    if re.findall('.*Unknown.*',res):
-                        creak=2
-            else:
-                creak=3
-
         except Exception,e:
+            print e
             pass
         return creak
 
 
     def rsync_creak(self,ip,port):
             try:
-                for data in self.lines:
-                    username=data.split(':')[0]
-                    password=data.split(':')[1]
-                    flag=self.rsync_connect(ip,username,password,port)
-
-                    if flag==3:
-                        self.lock.acquire()
-                        printRed("fail!!bacaues can't find any module\r\n")
-                        self.lock.release()
-                        break
-
-                    if flag==2:
-                        self.lock.acquire()
-                        printRed("fail!!bacaues modulename is error\r\n")
-                        self.lock.release()
-                        break
-
-                    if flag==1:
-                        self.lock.acquire()
-                        printGreen("%s rsync at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                        self.result.append("%s rsync at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                        self.lock.release()
-                        break
-                    else:
-                        self.lock.acquire()
-                        print "%s rsync service 's %s:%s login fail " %(ip,username,password)
-                        self.lock.release()
+                self.rsync_connect(ip,port)
             except Exception,e:
                 print e
 
@@ -119,13 +87,11 @@ class rsync_burp(object):
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.append("../")
     from comm.config import *
     c=config()
-    ipdict={'rsync': ['101.201.177.35:6379']} 
-    pinglist=['101.201.177.35']
-    test=redis_burp(c)
+    ipdict={'rsync': ['103.228.69.151:873']} 
+    pinglist=['103.228.69.151']
+    test=rsync_burp(c)
     test.run(ipdict,pinglist,50,file="../result/test")
 
                 
