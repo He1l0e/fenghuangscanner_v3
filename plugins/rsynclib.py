@@ -1,4 +1,5 @@
 import base64
+import re
 try:
     import hashlib
     hash_md4 = hashlib.new("md4")
@@ -164,6 +165,7 @@ class rsync:
             hash = base64.b64encode(md4.digest())
 
         response, number = re.subn(r'=+$','',hash)
+        print response
         resp = self.sendcmd(user + ' ' + response)
 
         if resp.find('OK') == -1:
