@@ -34,7 +34,7 @@ class mssql_burp(object):
                 for data in self.lines:
                     username=data.split(':')[0]
                     password=data.split(':')[1]
-                    flag=mssql_connect(ip,username,password,port)
+                    flag=self.mssql_connect(ip,username,password,port)
                     if flag==2:
                         break
                     if flag==1:
@@ -48,7 +48,7 @@ class mssql_burp(object):
 
 
     def run(self,ipdict,pinglist,threads,file):
-        if len(ipdict['mysql']):
+        if len(ipdict['mssql']):
             printPink("crack sql serice  now...")
             print "[*] start crack sql serice  %s" % time.ctime()
             starttime=time.time()
