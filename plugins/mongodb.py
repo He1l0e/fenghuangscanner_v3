@@ -1,101 +1,70 @@
-#coding=utf-8
+# coding=utf-8
 import time
 import threading
-from printers import printPink,printRed,printGreen
+from comm.printers import printGreen
 from multiprocessing.dummy import Pool
-import pymongo
+import socket, binascii
+
+socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 
 class mongodb_burp(object):
+    def __init__(self, c):
+        self.config = c
+        self.lock = threading.Lock()
+        self.result = []
+        self.lines = self.config.file2list("conf/mongodb.conf")
 
-    def __init__(self,c):
-        self.config=c
-        self.lock=threading.Lock()
-        self.result=[]
-        self.lines=self.config.file2list("conf/mongodb.conf")
-
-
-    def mongoDB_connect(self,ip,username,password,port):
-        crack=0
+    def mongoDB(self, ip, port):
         try:
-            connection=pymongo.Connection(ip,port)
-            db=connection.admin
-            db.collection_names()
-            self.lock.acquire()
-            printRed('%s mongodb service at %s allow login Anonymous login!!\r\n' %(ip,port))
-            self.result.append('%s mongodb service at %s allow login Anonymous login!!\r\n' %(ip,port))
-            self.lock.release()
-            crack=1
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((ip, int(port)))
+            data = binascii.a2b_hex(
+                "3a000000a741000000000000d40700000000000061646d696e2e24636d640000000000ffffffff130000001069736d6173746572000100000000")
+            s.send(data)
+            result = s.recv(1024)
+            if "ismaster" in result:
+                getlog_data = binascii.a2b_hex(
+                    "480000000200000000000000d40700000000000061646d696e2e24636d6400000000000100000021000000026765744c6f670010000000737461727475705761726e696e67730000")
+                s.send(getlog_data)
+                result = s.recv(1024)
+                if "totalLinesWritten" in result:
+                    self.lock.acquire()
+                    printGreen('[+] %s mongodb service at %s allow login Anonymous login!!\r\n' % (ip, port))
+                    self.result.append('[+] %s mongodb service at %s allow login Anonymous login!!\r\n' % (ip, port))
+                    self.lock.release()
+        except Exception, e:
+            print "[!] %s" % e
+            pass
 
-        except Exception,e:
-            if e[0]=='database error: not authorized for query on admin.system.namespaces':
-                try:
-                    r=db.authenticate(username,password)
-                    if r!=False:
-                        crack=2
-                    else:               
-                        self.lock.acquire()
-                        crack=3
-                        print "%s mongodb service 's %s:%s login fail " %(ip,username,password)
-                        self.lock.release()                   
-                except Exception,e:
-                    pass
-
-            else:
-                printRed('%s mongodb service at %s not connect' %(ip,port))
-                crack=4
-        return crack
-
-
-
-    def mongoDB(self,ip,port):
-            try:
-                for data in self.lines:
-                    username=data.split(':')[0]
-                    password=data.split(':')[1]
-                    flag=self.mongoDB_connect(ip,username,password,port)
-                    if flag in [1,4]:
-                        break
-
-                    if flag==2:
-                        self.lock.acquire()
-                        printGreen("%s mongoDB at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                        self.result.append("%s mongoDB at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                        self.lock.release()
-                        break
-            except Exception,e:
-                pass
-
-
-    def run(self,ipdict,pinglist,threads,file):
+    def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['mongodb']):
-            printPink("crack mongodb  now...")
+            print "[*] crack mongodb  now..."
             print "[*] start crack mongodb  %s" % time.ctime()
-            starttime=time.time()
+            starttime = time.time()
 
-            pool=Pool(threads)
+            pool = Pool(threads)
 
             for ip in ipdict['mongodb']:
-                pool.apply_async(func=self.mongoDB,args=(str(ip).split(':')[0],int(str(ip).split(':')[1])))
+                pool.apply_async(func=self.mongoDB, args=(str(ip).split(':')[0], int(str(ip).split(':')[1])))
 
             pool.close()
             pool.join()
             print "[*] stop mongoDB serice  %s" % time.ctime()
-            print "[*] crack mongoDB done,it has Elapsed time:%s " % (time.time()-starttime)
+            print "[*] crack mongoDB done,it has Elapsed time:%s " % (time.time() - starttime)
 
             for i in xrange(len(self.result)):
-                self.config.write_file(contents=self.result[i],file=file) 
+                self.config.write_file(contents=self.result[i], file=file)
 
 
 if __name__ == '__main__':
     import sys
+
     sys.path.append("../")
     from comm.config import *
-    c=config()
-    ipdict={'mongodb': ['112.90.23.158:27017']} 
-    pinglist=['192.168.1.1']
-    test=mongodb_burp(c)
-    test.run(ipdict,pinglist,50,file="../result/test")
 
-
-
+    c = config()
+    ipdict = {'mongodb': ['172.17.0.140:27017']}
+    pinglist = ['172.17.0.140']
+    test = mongodb_burp(c)
+    test.run(ipdict, pinglist, 50, file="../result/test")

@@ -14,4 +14,5 @@
 
 
 
-1.根据https://github.com/ysrc/F-Scrack解决部分扫描依赖问题
+1.准备根据 https://github.com/ysrc/F-Scrack 解决部分扫描依赖问题
+2.默认扫描端口变多

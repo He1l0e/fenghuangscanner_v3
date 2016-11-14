@@ -1,73 +1,114 @@
-#coding=utf-8
+# coding=utf-8
+'''
 import time
 import threading
-from printers import printPink,printGreen
+from comm.printers import printGreen
 from multiprocessing.dummy import Pool
-import psycopg2
-import re
+import socket, hashlib
+
+socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 
-def postgres_connect(ip,username,password,port):
-    crack =0
-    try:
-        db=psycopg2.connect(user=username, password=password, host=ip, port=port)
-        if db:
-            crack=1
-        db.close()
-    except Exception, e:
-        if re.findall(".*Password.*",e[0]):
-            lock.acquire()
-            print "%s postgres's %s:%s login fail" %(ip,username,password)
-            lock.release()
-            crack=2
-        else:
-            lock.acquire()
-            print "connect %s postgres service at %s login fail " %(ip,port)
-            lock.release()
-            crack=3
-        pass
-    return crack
+class mysql_burp(object):
+    def __init__(self, c):
+        self.config = c
+        self.lock = threading.Lock()
+        self.result = []
+        self.lines = self.config.file2list("conf/postgres.conf")
 
-def postgreS(ip,port):
+    def make_response(self, buf, username, password, salt):
+        pu = hashlib.md5(password + username).hexdigest()
+        print pu + salt
+        buf = hashlib.md5(pu + salt).hexdigest()
+        return 'md5' + buf
+
+    def postgresql_connect(self, ip, username, password, port):
+
         try:
-            d=open('conf/postgres.conf','r')
-            data=d.readline().strip('\r\n')
-            while(data):
-                username=data.split(':')[0]
-                password=data.split(':')[1]
-                flag=postgres_connect(ip,username,password,port)
-                time.sleep(0.1)
-                if flag==3:
-                    break
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((ip, port))
+        except:
+            return 3
+        try:
+            packet_length = len(username) + 7 + len(
+                "\x03user  database postgres application_name psql client_encoding UTF8  ")
+            p = "%c%c%c%c%c\x03%c%cuser%c%s%cdatabase%cpostgres%capplication_name%cpsql%cclient_encoding%cUTF8%c%c" % (
+                0, 0, 0, packet_length, 0, 0, 0, 0, username, 0, 0, 0, 0, 0, 0, 0, 0)
+            sock.send(p)
+            packet = sock.recv(1024)
+            psql_salt = []
+            if packet[0] == 'R':
+                a = str([packet[4]])
+                b = int(a[4:6], 16)
+                authentication_type = str([packet[8]])
+                c = int(authentication_type[4:6], 16)
+                if c == 5: psql_salt = packet[9:]
+            else:
+                return 3
+            buf = []
+            salt = psql_salt
+            lmd5 = self.make_response(buf, username, password, salt)
+            packet_length1 = len(lmd5) + 5 + len('p')
+            pp = 'p%c%c%c%c%s%c' % (0, 0, 0, packet_length1 - 1, lmd5, 0)
+            sock.send(pp)
+            packet1 = sock.recv(1024)
+            if packet1[0] == "R":
+                return 1
+        except Exception, e:
+            print "[!] err: %s" % e
+            return 3
 
-                if flag==1:
-                    lock.acquire()
-                    printGreen("%s postgres at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                    result.append("%s postgres at %s has weaken password!!-------%s:%s\r\n" %(ip,port,username,password))
-                    lock.release()
+    def postgresql(self, ip, port):
+        try:
+            for data in self.lines:
+                username = data.split(':')[0]
+                password = data.split(':')[1]
+                flag = self.postgresql_connect(ip, username, password, port)
+                if flag == 3:
                     break
-                data=d.readline().strip('\r\n')
-        except Exception,e:
-            print e
+                if flag == 1:
+                    self.lock.acquire()
+                    printGreen(
+                        "[+] %s postgresql at %s has weaken password!!-------%s:%s\r\n" % (
+                            ip, port, username, password))
+                    self.result.append(
+                        "[+] %s postgresql at %s has weaken password!!-------%s:%s\r\n" % (
+                            ip, port, username, password))
+                    self.lock.release()
+                    break
+        except Exception, e:
             pass
 
-def postgres_main(ipdict,threads):
-    printPink("crack postgres now...")
-    print "[*] start postgres  %s" % time.ctime()
-    starttime=time.time()
+    def run(self, ipdict, pinglist, threads, file):
+        if len(ipdict['postgres']):
+            print "[*] crack postgres now..."
+            print "[*] start crack postgres %s" % time.ctime()
+            starttime = time.time()
 
-    global lock
-    lock = threading.Lock()
-    global result
-    result=[]
+            pool = Pool(threads)
+            for ip in ipdict['postgres']:
+                pool.apply_async(func=self.postgresql, args=(str(ip).split(':')[0], int(str(ip).split(':')[1])))
 
-    pool=Pool(threads)
+            pool.close()
+            pool.join()
 
-    for ip in ipdict['postgres']:
-        pool.apply_async(func=postgreS,args=(str(ip).split(':')[0],int(str(ip).split(':')[1])))
+            print "[+] stop crack postgres %s" % time.ctime()
+            print "[+] crack postgres done,it has Elapsed time:%s " % (time.time() - starttime)
 
-    pool.close()
-    pool.join()
-    print "[*] stop crack postgres %s" % time.ctime()
-    print "[*] crack postgres done,it has Elapsed time:%s " % (time.time()-starttime)
-    return result
+            for i in xrange(len(self.result)):
+                self.config.write_file(contents=self.result[i], file=file)
+
+
+if __name__ == '__main__':
+    import sys
+
+    sys.path.append("../")
+    from comm.config import *
+
+    c = config()
+    ipdict = {'postgres': ['127.0.0.1:5432']}
+    pinglist = ['127.0.0.1']
+    test = mysql_burp(c)
+    test.run(ipdict, pinglist, 50, file="../result/test")
+
+'''
