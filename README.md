@@ -11,3 +11,7 @@
 	  --P ISPING         --P not mean no ping frist,default yes
 	  --p USER_PORTS     --p scan ports;like 21,80,445 or 22-1000
 	  --file FILE        get ips or domains for this file
+
+
+
+1.根据https://github.com/ysrc/F-Scrack解决部分扫描依赖问题
