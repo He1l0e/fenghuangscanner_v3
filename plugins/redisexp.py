@@ -85,6 +85,6 @@ if __name__ == '__main__':
 
     c = config()
     ipdict = {'redis': ['127.0.0.1:6379']}
-    pinglist = ['101.201.177.35']
+    pinglist = ['xxxx']
     test = redis_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

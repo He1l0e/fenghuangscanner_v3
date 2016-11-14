@@ -64,7 +64,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'mongodb': ['172.17.0.140:27017']}
-    pinglist = ['172.17.0.140']
+    ipdict = {'mongodb': ['xxxx:27017']}
+    pinglist = ['xxxx']
     test = mongodb_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

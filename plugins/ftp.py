@@ -70,7 +70,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ftp': ['172.17.40.60:21']}
-    pinglist = ['172.17.40.60']
+    ipdict = {'ftp': ['xxxx:21']}
+    pinglist = ['172xxx.60']
     test = ftp_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

@@ -77,7 +77,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'rsync': ['103.228.69.151:873']}
-    pinglist = ['103.228.69.151']
+    ipdict = {'rsync': ['xxx:873']}
+    pinglist = ['xxx']
     test = rsync_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

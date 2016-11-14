@@ -120,7 +120,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'mysql': ['127.0.0.1:3306']}
-    pinglist = ['127.0.0.1']
+    ipdict = {'mysql': ['xxx:3306']}
+    pinglist = ['xxxx']
     test = mysql_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

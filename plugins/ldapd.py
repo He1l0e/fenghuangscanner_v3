@@ -65,7 +65,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ldap': ['221.228.199.15:389']}
-    pinglist = ['172.17.0.7']
+    ipdict = {'ldap': ['xxxx:389']}
+    pinglist = ['xxxxx']
     test = ldap_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

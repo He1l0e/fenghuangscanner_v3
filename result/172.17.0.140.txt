@@ -1,6 +1,0 @@
-http service has:
-       ['172.17.0.140:27017']
-[+] 172.17.0.140 mongodb service at 27017 allow login Anonymous login!!
-http service has:
-       ['172.17.0.140:27017']
-[+] 172.17.0.140 mongodb service at 27017 allow login Anonymous login!!

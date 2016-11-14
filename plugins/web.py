@@ -109,7 +109,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'http': ['192.168.1.1:80']}
+    ipdict = {'http': ['xxx:80']}
     pinglist = ['192.168.1.1']
     test = web_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

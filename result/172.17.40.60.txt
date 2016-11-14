@@ -1,3 +1,0 @@
-ftp service has:
-       ['172.17.40.60:21']
-[+] 172.17.40.60 ftp at 21 has weaken password!!-------ftp:ftp@163.com

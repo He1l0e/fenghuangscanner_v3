@@ -146,7 +146,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ssl': ['222.22.224.142:443']}
+    ipdict = {'ssl': ['xxxxx:443']}
     pinglist = ['122.225.81.129']
     test = ssl_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

@@ -80,7 +80,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ssh': ['139.129.30.58:22']}
+    ipdict = {'ssh': ['xxxx:22']}
     pinglist = ['122.225.81.129']
     test = ssh_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

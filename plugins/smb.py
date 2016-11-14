@@ -70,7 +70,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'smb': ['10.211.55.3:445']}
+    ipdict = {'smb': ['xxxx:445']}
     pinglist = ['101.201.177.35']
     test = smb_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
