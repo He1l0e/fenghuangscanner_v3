@@ -17,7 +17,6 @@ class mongodb_burp(object):
         self.config = c
         self.lock = threading.Lock()
         self.result = []
-        self.lines = self.config.file2list("conf/mongodb.conf")
 
     def mongoDB(self, ip, port):
         try:
