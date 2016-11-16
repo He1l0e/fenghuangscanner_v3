@@ -73,6 +73,7 @@ class portscan():
             "ssl": [],
             "web": [],
             "http": [],
+            "telnet": [],
             "Unknown": []
         }
 
