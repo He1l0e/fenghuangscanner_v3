@@ -1,22 +1,24 @@
-# coding: utf-8
+# coding=utf-8 author:wilson
 __author__ = "wilson"
-import os
 import sys
 
 sys.path.append("../")
 
 from plugins.ftp import *
-from plugins.smb import *
-from plugins.mysql import *
-from plugins.mssql import *
 from plugins.ldapd import *
+from plugins.memcached import *
 from plugins.mongodb import *
+from plugins.mssql import *
+from plugins.mysql import *
+from plugins.postgres import *
 from plugins.redisexp import *
 from plugins.rsync import *
+from plugins.smb import *
 from plugins.snmp import *
 from plugins.ssh import *
 from plugins.ssltest import *
-from plugins.vnc import *
+# from plugins.vnc import *
+from plugins.telnet import *
 from plugins.web import *
 
 
@@ -25,13 +27,18 @@ def ftpburp(c):
     return t
 
 
-def smbburp(c):
-    t = smb_burp(c)
+def ldapburp(c):
+    t = ldap_burp(c)
     return t
 
 
-def mysqlburp(c):
-    t = mysql_burp(c)
+def memcacheburp(c):
+    t = memcache_burp(c)
+    return t
+
+
+def mongodbburp(c):
+    t = mongodb_burp(c)
     return t
 
 
@@ -40,13 +47,13 @@ def mssqlburp(c):
     return t
 
 
-def ldapburp(c):
-    t = ldap_burp(c)
+def mysqlburp(c):
+    t = mysql_burp(c)
     return t
 
 
-def mongodbburp(c):
-    t = mongodb_burp(c)
+def postgresburp(c):
+    t = postgres_burp(c)
     return t
 
 
@@ -57,6 +64,11 @@ def redisburp(c):
 
 def rsyncburp(c):
     t = rsync_burp(c)
+    return t
+
+
+def smbburp(c):
+    t = smb_burp(c)
     return t
 
 
@@ -75,9 +87,16 @@ def sslburp(c):
     return t
 
 
+def telnetburp(c):
+    t = telnet_burp(c)
+    return t
+
+
+'''
 def vncburp(c):
     t = vnc_burp(c)
     return t
+'''
 
 
 def webburp(c):
@@ -92,17 +111,20 @@ class pluginFactory():
         self.config = c
         self.pluginCategory = {
             "ftp": ftpburp,
-            "smb": smbburp,
-            "mysql": mysqlburp,
-            "mssql": mssqlburp,
-            #  "ldap": ldapburp,
+            "ldap": ldapburp,
+            "memcache": memcacheburp,
             "mongodb": mongodbburp,
+            "mssql": mssqlburp,
+            "mysql": mysqlburp,
+            "postgres": postgresburp,
             "redis": redisburp,
             "rsync": rsyncburp,
-            #           "snmp": snmpburp,
+            "smb": smbburp,
+            "snmp": snmpburp,
             "ssh": sshburp,
-            "ssl": sslburp,
-            "vnc": vncburp,
+            "ssltest": sslburp,
+            "telnet": telnetburp,
+            # "vnc": vncburp,
             "web": webburp,
         }
         self.get_pluginList()

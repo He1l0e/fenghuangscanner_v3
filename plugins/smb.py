@@ -1,11 +1,16 @@
-# coding=utf-8
-'''
+# coding=utf-8 author:wilson
 import time
 import threading
-from comm.printers import printPink, printGreen
-from impacket.smbconnection import *
+from comm.printers import printGreen, printRed
 from multiprocessing.dummy import Pool
-from threading import Thread
+
+try:
+    from impacket.smbconnection import *
+
+    isinstall = True
+except:
+    isinstall = False
+
 
 class smb_burp(object):
     def __init__(self, c):
@@ -15,17 +20,13 @@ class smb_burp(object):
         self.lines = self.config.file2list("conf/smb.conf")
 
     def smb_connect(self, ip, username, password):
-        crack = 0
         try:
             smb = SMBConnection('*SMBSERVER', ip)
             smb.login(username, password)
             smb.logoff()
-            crack = 1
-        except Exception, e:
-            self.lock.acquire()
-            print "%s smb 's %s:%s login fail " % (ip, username, password)
-            self.lock.release()
-        return crack
+            return 1
+        except:
+            return 0
 
     def smb_l(self, ip, port):
         try:
@@ -34,17 +35,26 @@ class smb_burp(object):
                 password = data.split(':')[1]
                 if self.smb_connect(ip, username, password) == 1:
                     self.lock.acquire()
-                    printGreen("%s smb at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
+                    printGreen(
+                        "[+] %s smb at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                     self.result.append(
-                        "%s smb at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
+                        "[+] %s smb at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                     self.lock.release()
                     break
+                else:
+                    self.lock.acquire()
+                    print "[*] %s smb 's %s:%s login fail " % (ip, username, password)
+                    self.lock.release()
         except Exception, e:
-            pass
+            print "[!] err: %s" % e
 
     def run(self, ipdict, pinglist, threads, file):
+        if isinstall == False:
+            printRed("[!] 抱歉没有安装impacket库，如果你要爆破smb弱口令，需要安装 impacket 0.9.13")
+            return
+
         if len(ipdict['smb']):
-            printPink("crack smb  now...")
+            print "[*] crack smb  now..."
             print "[*] start crack smb serice  %s" % time.ctime()
             starttime = time.time()
 
@@ -70,8 +80,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'smb': ['xxxx:445']}
-    pinglist = ['101.201.177.35']
+    ipdict = {'smb': ['xxx:445']}
+    pinglist = ['xxxx']
     test = smb_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
-'''

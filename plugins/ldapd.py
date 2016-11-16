@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
@@ -6,10 +6,6 @@ from multiprocessing.dummy import Pool
 import socket, binascii
 
 socket.setdefaulttimeout(8)
-try:
-    import ldap
-except:
-    print "没有安装ldap库!暂不扫描ldap"
 
 
 class ldap_burp(object):
@@ -27,8 +23,11 @@ class ldap_burp(object):
             result = s.recv(1024)
             if "invalid" in result:
                 return 1
-        except:
+        except Exception, e:
+            print "[!] err: %s" % e
             return 0
+        finally:
+            s.close()
 
     def ldap_creak(self, ip, port):
         try:
@@ -39,7 +38,7 @@ class ldap_burp(object):
                 self.result.append("[+] %s ldap at %s port allow simple bind\r\n" % (ip, port))
                 self.lock.release()
         except Exception, e:
-            print e
+            print "[!] err: %s" % e
             pass
 
     def run(self, ipdict, pinglist, threads, file):
@@ -66,6 +65,6 @@ if __name__ == '__main__':
 
     c = config()
     ipdict = {'ldap': ['xxxx:389']}
-    pinglist = ['xxxxx']
+    pinglist = ['xxx']
     test = ldap_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

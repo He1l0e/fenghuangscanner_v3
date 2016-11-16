@@ -1,8 +1,5 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 __author__ = 'wilson'
-from IPy import IP
-from comm.printers import printRed
-
 
 class config(object):
     def get_ip_list(self, ip):
@@ -47,30 +44,6 @@ class config(object):
             else:
                 print "[!] -h wrong format"
         return ip_list
-
-    def getips(self, ip):
-        '''
-        久的获取ip列表 依靠ipy库
-        :param ip:
-        :return:
-        '''
-        iplist = []
-        try:
-            if "-" in ip.split(".")[3]:
-                startnum = int(ip.split(".")[3].split("-")[0])
-                endnum = int(ip.split(".")[3].split("-")[1])
-                for i in range(startnum, endnum):
-                    iplist.append("%s.%s.%s.%s" % (ip.split(".")[0], ip.split(".")[1], ip.split(".")[2], i))
-            else:
-                ips = IP(ip)
-                for i in ips:
-                    iplist.append(str(i))
-
-            return iplist
-
-        except:
-            printRed("[!] not a valid ip given. you should put ip like 192.168.1.0/24, 192.168.0.0/16,192.168.0.1-200")
-            exit()
 
     def file2list(self, file):
         '''

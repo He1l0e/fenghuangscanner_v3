@@ -1,11 +1,10 @@
-# coding=utf-8
-'''
+# coding=utf-8 author:wilson
 import threading
 from comm.printers import printGreen
 from multiprocessing.dummy import Pool
-import requests
 import time
 import base64
+import urllib2
 
 
 class web_burp(object):
@@ -18,51 +17,74 @@ class web_burp(object):
 
     def weblogin(self, url, ip, port, username, password):
         try:
-            creak = 0
-            header = {}
+            # header = {}
             login_pass = username + ':' + password
-            header['Authorization'] = 'Basic ' + base64.encodestring(login_pass)
+            hash = 'Basic ' + base64.encodestring(login_pass).replace("\n", "")
+            # header['Authorization'] = 'Basic ' + base64.encodestring(login_pass)
             # header base64.encodestring 会多加一个回车号
-            header['Authorization'] = header['Authorization'].replace("\n", "")
-            r = requests.get(url, headers=header, timeout=8)
-            if r.status_code == 200:
+            # header['Authorization'] = header['Authorization'].replace("\n", "")
+            request = urllib2.Request(url)
+            request.add_header('Authorization', hash)
+            response = urllib2.urlopen(request, timeout=8)
+            # r = requests.get(url, headers=header, timeout=8)
+            code = response.getcode()
+            if code == 200:
                 self.result.append(
                     "[+] %s service at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                 self.lock.acquire()
                 printGreen(
                     "[+] %s service at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                 self.lock.release()
-                creak = 1
+                return 1
             else:
                 self.lock.acquire()
                 print "[*] %s service 's %s:%s login fail " % (ip, username, password)
                 self.lock.release()
-        except Exception, e:
-            pass
-        return creak
+        except:
+            self.lock.acquire()
+            print "[*] %s service 's %s:%s login fail " % (ip, username, password)
+            self.lock.release()
+        return 0
 
     def webmain(self, ip, port):
         # iis_put vlun scann
         try:
             url = 'http://' + ip + ':' + str(port) + '/' + str(time.time()) + '.txt'
-            r = requests.put(url, data='hi~', timeout=10)
-            if r.status_code == 201:
+            r = urllib2.Request(url, data='hi~')
+            r.get_method = lambda: 'PUT'
+            response = urllib2.urlopen(r, timeout=10)
+            code = response.getcode()
+            if code == 201:
                 self.lock.acquire()
                 printGreen('[+] %s has iis_put vlun at %s\r\n' % (ip, port))
                 self.lock.release()
                 self.result.append('[+] %s has iis_put vlun at %s\r\n' % (ip, port))
         except Exception, e:
-            # print e
+            print e
             pass
 
         # burp 401 web
         try:
             url = 'http://' + ip + ':' + str(port)
             url_get = url + '/manager/html'
-            r = requests.get(url_get, timeout=8)  # tomcat
-            r2 = requests.get(url, timeout=8)  # web
+            # tomcat
+            r = urllib2.Request(url_get)
+            # 基础认证
+            r2 = urllib2.Request(url)
 
-            if r.status_code == 401:
+            try:
+                re = urllib2.urlopen(r, timeout=10)
+                r_code = re.getcode()
+            except urllib2.URLError, e:
+                r_code = e.code
+
+            try:
+                re2 = urllib2.urlopen(r2, timeout=10)
+                r2_code = re2.getcode()
+            except urllib2.URLError, e:
+                r2_code = e.code
+
+            if r_code == 401:
                 for data in self.tomcatlines:
                     username = data.split(':')[0]
                     password = data.split(':')[1]
@@ -70,7 +92,7 @@ class web_burp(object):
                     if flag == 1:
                         break
 
-            elif r2.status_code == 401:
+            elif r2_code == 401:
                 for data in self.weblines:
                     username = data.split(':')[0]
                     password = data.split(':')[1]
@@ -110,7 +132,6 @@ if __name__ == '__main__':
 
     c = config()
     ipdict = {'http': ['xxx:80']}
-    pinglist = ['192.168.1.1']
+    pinglist = ['xxx']
     test = web_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
-'''

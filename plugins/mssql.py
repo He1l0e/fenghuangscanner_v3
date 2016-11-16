@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
@@ -10,19 +10,25 @@ socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 class mssql_burp(object):
     def __init__(self, c):
+        '''
+        模仿代码：https://github.com/ysrc/F-Scrack
+        :param c:
+        只适应于某版本，sql 2014 以上不能使用
+        '''
         self.config = c
         self.lock = threading.Lock()
         self.result = []
         self.lines = self.config.file2list("conf/mssql.conf")
 
     def mssql_connect(self, ip, username, password, port):
-        crack = 0
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((ip, int(port)))
         except:
             print "[!] connect error"
-            crack = 2
+            sock.close()
+            return 2
+
         try:
             hh = binascii.b2a_hex(ip)
             husername = binascii.b2a_hex(username)
@@ -52,13 +58,14 @@ class mssql_burp(object):
             sock.send(data7)
             packet = sock.recv(1024)
             if 'master' in packet:
-                crack = 1
+                return 1
             else:
                 print "[*] %s's mssql service 's %s:%s login fail " % (ip, username, password)
         except Exception, e:
-            print e
+            print "[!] err :%s" % e
             return 3
-        return crack
+        finally:
+            sock.close()
 
     def mssq1(self, ip, port):
         try:
@@ -104,7 +111,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'mssql': ['10.1.7.252:1433']}
-    pinglist = ['10.1.7.252']
+    ipdict = {'mssql': ['xxx:1433']}
+    pinglist = ['xxxx']
     test = mssql_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

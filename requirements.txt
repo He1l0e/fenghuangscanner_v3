@@ -1,5 +1,2 @@
 impacket==0.9.13
 paramiko==1.15.2
-psycopg2==2.6
-requests==2.10.0
-pycrypto==2.6.1

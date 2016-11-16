@@ -1,3 +1,4 @@
+# coding=utf-8 author:wilson
 import ctypes, sys
 import platform
 

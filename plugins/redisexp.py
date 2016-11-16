@@ -1,8 +1,7 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
-from Queue import Queue
 from multiprocessing.dummy import Pool
 import socket
 
@@ -11,11 +10,14 @@ socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 class redis_burp(object):
     def __init__(self, c):
+        '''
+        模仿代码：https://github.com/ysrc/F-Scrack
+        :param c:
+        '''
         self.config = c
         self.lock = threading.Lock()
         self.result = []
         self.lines = self.config.file2list("conf/redis.conf")
-        self.sp = Queue()
 
     def redis(self, password, ip, port):
         try:
@@ -26,7 +28,10 @@ class redis_burp(object):
             if '+OK' in result:
                 return 1
         except Exception, e:
+            print "[!] err:%s" % e
             return 0
+        finally:
+            s.close()
 
     def redisexp(self, ip, port):
         try:
@@ -54,8 +59,8 @@ class redis_burp(object):
                         self.lock.release()
         except Exception, e:
             print "[!] %s" % e
-            pass
-        self.sp.task_done()
+        finally:
+            s.close()
 
     def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['redis']):

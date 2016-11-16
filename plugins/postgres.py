@@ -1,5 +1,4 @@
-# coding=utf-8
-'''
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
@@ -9,25 +8,29 @@ import socket, hashlib
 socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 
-class mysql_burp(object):
+class postgres_burp(object):
     def __init__(self, c):
+        '''
+        模仿代码：https://github.com/ysrc/F-Scrack
+        :param c:
+        只适应于某版本，有些版本不能用
+        '''
         self.config = c
         self.lock = threading.Lock()
         self.result = []
         self.lines = self.config.file2list("conf/postgres.conf")
 
-    def make_response(self, buf, username, password, salt):
+    def make_response(self, username, password, salt):
         pu = hashlib.md5(password + username).hexdigest()
-        print pu + salt
         buf = hashlib.md5(pu + salt).hexdigest()
         return 'md5' + buf
 
     def postgresql_connect(self, ip, username, password, port):
-
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((ip, port))
         except:
+            # 连接超时
             return 3
         try:
             packet_length = len(username) + 7 + len(
@@ -36,18 +39,23 @@ class mysql_burp(object):
                 0, 0, 0, packet_length, 0, 0, 0, 0, username, 0, 0, 0, 0, 0, 0, 0, 0)
             sock.send(p)
             packet = sock.recv(1024)
-            psql_salt = []
+            if "ont exist" in packet:
+                # 用户不存在
+                return 3
             if packet[0] == 'R':
                 a = str([packet[4]])
                 b = int(a[4:6], 16)
                 authentication_type = str([packet[8]])
                 c = int(authentication_type[4:6], 16)
-                if c == 5: psql_salt = packet[9:]
+                if c == 5:
+                    salt = packet[9:]
+                else:
+
+                    return 3
             else:
+                # 协议版本不对
                 return 3
-            buf = []
-            salt = psql_salt
-            lmd5 = self.make_response(buf, username, password, salt)
+            lmd5 = self.make_response(username, password, salt)
             packet_length1 = len(lmd5) + 5 + len('p')
             pp = 'p%c%c%c%c%s%c' % (0, 0, 0, packet_length1 - 1, lmd5, 0)
             sock.send(pp)
@@ -55,6 +63,7 @@ class mysql_burp(object):
             if packet1[0] == "R":
                 return 1
         except Exception, e:
+            # 发送错误
             print "[!] err: %s" % e
             return 3
 
@@ -76,7 +85,7 @@ class mysql_burp(object):
                             ip, port, username, password))
                     self.lock.release()
                     break
-        except Exception, e:
+        except:
             pass
 
     def run(self, ipdict, pinglist, threads, file):
@@ -106,9 +115,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'postgres': ['127.0.0.1:5432']}
+    ipdict = {'postgres': ['xxxx:5432']}
     pinglist = ['127.0.0.1']
-    test = mysql_burp(c)
+    test = postgres_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
-
-'''

@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
@@ -49,7 +49,6 @@ class mysql_burp(object):
         return binascii.a2b_hex(auth_data)
 
     def mysql_connect(self, ip, username, password, port):
-        crack = 0
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((ip, port))
@@ -59,20 +58,22 @@ class mysql_burp(object):
                 return 3
         except Exception, e:
             print "[!] error: %s" % e
+            sock.close()
             return 3
         try:
             auth_data = self.get_auth_data(username, password, scramble, plugin)
             sock.send(auth_data)
             result = sock.recv(1024)
             if result == "\x07\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00":
-                crack = 1
+                return 1
             else:
                 self.lock.acquire()
                 print "[*] %s's mysql service 's %s:%s login fail " % (ip, username, password)
                 self.lock.release()
         except:
             pass
-        return crack
+        finally:
+            sock.close()
 
     def mysq1(self, ip, port):
         try:
@@ -90,7 +91,7 @@ class mysql_burp(object):
                         "[+] %s mysql at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                     self.lock.release()
                     break
-        except Exception, e:
+        except:
             pass
 
     def run(self, ipdict, pinglist, threads, file):
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'mysql': ['xxx:3306']}
-    pinglist = ['xxxx']
+    ipdict = {'mysql': ['xxxx:3306']}
+    pinglist = ['xxx']
     test = mysql_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

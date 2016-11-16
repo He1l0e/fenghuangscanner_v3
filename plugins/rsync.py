@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-from comm.printers import printPink, printGreen
+# coding=utf-8 author:wilson
+from comm.printers import printGreen
 from multiprocessing.dummy import Pool
-from Queue import Queue
 import time
 import threading
 import sys
@@ -16,10 +15,8 @@ class rsync_burp(object):
         self.config = c
         self.lock = threading.Lock()
         self.result = []
-        self.sp = Queue()
 
-    def rsync_connect(self, ip, port):
-        creak = 0
+    def rsync_creak(self, ip, port):
         try:
             payload = '\x40\x52\x53\x59\x4e\x43\x44\x3a\x20\x33\x31\x2e\x30\x0a'
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,13 +42,9 @@ class rsync_burp(object):
                     self.result.append("[+] %s rsync at %s port  maybe allow anonymous login" % (ip, port))
                     self.lock.release()
         except Exception, e:
-            print e
-
-    def rsync_creak(self, ip, port):
-        try:
-            self.rsync_connect(ip, port)
-        except Exception, e:
-            print e
+            print "[!] err: %s" % e
+        finally:
+            s.close()
 
     def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['rsync']):

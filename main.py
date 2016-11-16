@@ -1,18 +1,15 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 __author__ = 'wilson'
 import argparse
 from comm.config import config
 from comm.portscan import *
 from factorys.pluginFactory import *
 
-# 实例化config类
-c = config()
-
 if __name__ == '__main__':
     # 接受cmd参数
     parser = argparse.ArgumentParser(description='ports&*weak password scanner. teams:xdsec.  author: wilson ')
     parser.add_argument('--ip', action="store", required=False, dest="ip", type=str,
-                        help='必填,支持ip(192.168.1.1),ip段(192.168.1),(192.168.1.1-192.168.1.254),ip列表文件(ip.ini),最多一次可扫描65535个IP')
+                        help='必填,支持ip(192.168.1.1),ip段(192.168.1),(192.168.1.1-192.168.1.254),ip列表文件(ip.ini)')
     parser.add_argument("--threads", action="store", required=False, dest="threads", type=int, default=50,
                         help='线程数, 选填默认50')
     parser.add_argument("--P", action="store", required=False, dest="isping", type=str, default='yes',
@@ -25,6 +22,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     ip = args.ip
     filename = args.file
+
+    # 实例化config类
+    c = config()
 
     # 获取ip列表
     if ip:

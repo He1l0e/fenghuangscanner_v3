@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from multiprocessing.dummy import Pool
@@ -14,25 +14,29 @@ class ftp_burp(object):
         self.lines = self.config.file2list("conf/ftp.conf")
 
     def ftp_connect(self, ip, username, password, port):
-        crack = 0
         try:
             ftp = FTP()
-            ftp.connect(ip, str(port))
+            ftp.connect(ip, str(port), timeout=8)
             ftp.login(user=username, passwd=password)
-            crack = 1
-            ftp.close()
+            # 登入成功
+            return 1
         except Exception, e:
-            self.lock.acquire()
-            print "[*] %s's ftp service 's %s:%s login fail " % (ip, username, password)
-            self.lock.release()
-        return crack
+            if e[0] == 61 or e[0] == "timed out":
+                # 连接超时
+                return 2
+            else:
+                # 登入失败
+                return 0
+        finally:
+            ftp.close()
 
     def ftp_l(self, ip, port):
         try:
             for data in self.lines:
                 username = data.split(':')[0]
                 password = data.split(':')[1]
-                if self.ftp_connect(ip, username, password, port) == 1:
+                flag = self.ftp_connect(ip, username, password, port)
+                if flag == 1:
                     self.lock.acquire()
                     printGreen(
                         "[+] %s ftp at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
@@ -40,7 +44,17 @@ class ftp_burp(object):
                         "[+] %s ftp at %s has weaken password!!-------%s:%s\r\n" % (ip, port, username, password))
                     self.lock.release()
                     break
-        except Exception, e:
+                elif flag == 2:
+                    self.lock.acquire()
+                    print "[!] %s's ftp service can't connect or connect timeout" % (ip)
+                    self.lock.release()
+                    break
+                else:
+                    self.lock.acquire()
+                    print "[*] %s's ftp service 's %s:%s login fail " % (ip, username, password)
+                    self.lock.release()
+
+        except:
             pass
 
     def run(self, ipdict, pinglist, threads, file):
@@ -70,7 +84,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ftp': ['xxxx:21']}
-    pinglist = ['172xxx.60']
+    ipdict = {'ftp': ['xxx:21']}
+    pinglist = ['xxx.60']
     test = ftp_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

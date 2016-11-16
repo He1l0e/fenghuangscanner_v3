@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 __author__ = 'wilson'
 import sys
 
@@ -58,23 +58,23 @@ class portscan():
         self.sp = Queue()
         self.signs = self.prepsigns()
 
-        self.ipdict = {}
-        self.ipdict['ldap'] = []
-        self.ipdict['mysql'] = []
-        self.ipdict['mssql'] = []
-        self.ipdict['ftp'] = []
-        self.ipdict['ssh'] = []
-        self.ipdict['smb'] = []
-        self.ipdict['vnc'] = []
-        self.ipdict['pop3'] = []
-        self.ipdict['rsync'] = []
-        self.ipdict['http'] = []
-        self.ipdict['https'] = []
-        self.ipdict['mongodb'] = []
-        self.ipdict['postgres'] = []
-        self.ipdict['redis'] = []
-        self.ipdict['ssl'] = []
-        self.ipdict['Unknown'] = []
+        self.ipdict = {
+            "ftp": [],
+            "ldap": [],
+            "memcache": [],
+            "mongodb": [],
+            "mysql": [],
+            "mssql": [],
+            "postgres": [],
+            "redis": [],
+            "rsync": [],
+            "smb": [],
+            "ssh": [],
+            "ssl": [],
+            "web": [],
+            "http": [],
+            "Unknown": []
+        }
 
     def getports(self, user_ports):
         '''
@@ -175,7 +175,7 @@ class portscan():
             self.pinglist = ips
 
         if len(self.pinglist) == 0:
-            print "[*] not find any live machine - -|||"
+            print "[!] sorry,not find any live machine , try --P n"
             exit()
 
         print "[*] Scanning for live machines done,it has Elapsed time:%s " % (time.time() - starttime)
@@ -285,6 +285,8 @@ class portscan():
         for ip in self.ipdict['Unknown']:
             # print ip
             try:
+                if str(ip).split(':')[1] == '21':
+                    self.ipdict['ftp'].append(ip)
                 if str(ip).split(':')[1] == '389':
                     self.ipdict['ldap'].append(ip)
                 if str(ip).split(':')[1] == '445':
@@ -297,18 +299,18 @@ class portscan():
                     self.ipdict['ssh'].append(ip)
                 if str(ip).split(':')[1] == '27017':
                     self.ipdict['mongodb'].append(ip)
-                if str(ip).split(':')[1] == '110':
-                    self.ipdict['pop3'].append(ip)
                 if str(ip).split(':')[1] == '5432':
                     self.ipdict['postgres'].append(ip)
                 if str(ip).split(':')[1] == '443':
                     self.ipdict['ssl'].append(ip)
                 if str(ip).split(':')[1] == '873':
                     self.ipdict['rsync'].append(ip)
+                if str(ip).split(':')[1] == '11211':
+                    self.ipdict['memcache'].append(ip)
                 if str(ip).split(':')[1] == '6379':
                     self.ipdict['redis'].append(ip)
-                if str(ip).split(':')[1] == '21':
-                    self.ipdict['ftp'].append(ip)
+                if str(ip).split(':')[1] == '23':
+                    self.ipdict['telnet'].append(ip)
             except Exception as e:
                 print "[!] err:%s" % e
         # 处理被识别为http的mongo

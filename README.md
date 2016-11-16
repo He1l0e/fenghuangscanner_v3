@@ -1,18 +1,27 @@
 # fenghuangscan_v3
 
-####wilson@wilson-2:~/tools/fenghuangscanner_$ python main.py -h
+####wilson@wilson:~/tools/fenghuangscanner$ python main.py -h
 	usage: main.py [-h] [--ip IP] [--threads THREADS] [--P ISPING]
 	               [--p USER_PORTS] [--file FILE]
 	ports&*weak password scanner. teams:xdsec. author: wilson
 	optional arguments:
 	  -h, --help         show this help message and exit
-	  --ip IP            ip like 192.168.1.0/24 or 192.168.0.0/16
-	  --threads THREADS  Maximum threads, default 50
-	  --P ISPING         --P not mean no ping frist,default yes
-	  --p USER_PORTS     --p scan ports;like 21,80,445 or 22-1000
-	  --file FILE        get ips or domains for this file
+	  --ip IP            必填,支持ip(192.168.1.1),ip段(192.168.1),(192.168.1.
+	                     1-192.168.1.254),ip列表文件(ip.ini)
+	  --threads THREADS  线程数, 选填默认50
+	  --P ISPING         是否ping扫描,默认ping扫描
+	  --p USER_PORTS     端口设置，选填 支持--p 21,80,445 or 22-1000
+	  --file FILE        保存结果到文件，选填
+	                     默认以ip的名字为文件名
 
 
 
-1.准备根据 https://github.com/ysrc/F-Scrack 解决部分扫描依赖问题
-2.默认扫描端口变多
+####本次优化
+    1.准备根据 https://github.com/ysrc/F-Scrack 解决部分扫描依赖问题以及ip输入更人性化
+    2.输出消息更加人性化
+    3.添加telnet爆破，去掉pop3，vnc爆破
+    4.smb仍然依赖 impacket==0.9.13库，ssh还是依赖 paramiko==1.15.2
+    5.丰富字典，这样扫描速度可能变慢
+
+
+####任何问题欢迎提issues

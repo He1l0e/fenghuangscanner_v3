@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8 author:wilson
 import time
 import threading
 from comm.printers import printGreen
@@ -10,6 +10,10 @@ socket.setdefaulttimeout(8)  # 设置了全局默认超时时间
 
 class mongodb_burp(object):
     def __init__(self, c):
+        '''
+        模仿代码：https://github.com/ysrc/F-Scrack
+        :param c:
+        '''
         self.config = c
         self.lock = threading.Lock()
         self.result = []
@@ -34,8 +38,9 @@ class mongodb_burp(object):
                     self.result.append('[+] %s mongodb service at %s allow login Anonymous login!!\r\n' % (ip, port))
                     self.lock.release()
         except Exception, e:
-            print "[!] %s" % e
-            pass
+            print "[!] err: %s" % e
+        finally:
+            s.close()
 
     def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['mongodb']):

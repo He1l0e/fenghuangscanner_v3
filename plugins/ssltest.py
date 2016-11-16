@@ -1,11 +1,10 @@
-#!/usr/bin/python
-import sys
+# coding=utf-8 author:wilson
 import struct
 import socket
 import select
 import time
 import threading
-from comm.printers import printPink, printRed
+from comm.printers import printRed
 from multiprocessing.dummy import Pool
 
 
@@ -119,6 +118,8 @@ class ssl_burp(object):
         except Exception, e:
             # print e
             pass
+        finally:
+            s.close()
 
     def run(self, ipdict, pinglist, threads, file):
         if len(ipdict['ssl']):
@@ -147,6 +148,6 @@ if __name__ == '__main__':
 
     c = config()
     ipdict = {'ssl': ['xxxxx:443']}
-    pinglist = ['122.225.81.129']
+    pinglist = ['xxx']
     test = ssl_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
