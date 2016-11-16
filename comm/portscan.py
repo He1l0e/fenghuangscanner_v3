@@ -260,7 +260,6 @@ class portscan():
         print "[*] Scanning ports now..."
         print "[*] start Scanning live machines' ports at %s" % time.ctime()
         starttime = time.time()
-
         for i in xrange(threads):
             st = Thread(target=self.scanports)
             st.setDaemon(True)
