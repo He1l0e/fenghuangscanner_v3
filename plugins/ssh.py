@@ -1,15 +1,23 @@
 # coding=utf-8 author:wilson
 import time
-import threading
+import threading, re
 from multiprocessing.dummy import Pool
 from comm.printers import printGreen, printRed
 
 try:
     import paramiko
 
-    isinstall = True
+    isinstall = False
 except:
     isinstall = False
+
+import platform, subprocess, os, signal, time
+
+is_likelinux = platform.system() in ['Linux', 'Darwin']
+
+
+class TimeoutError(Exception):
+    pass
 
 
 class ssh_burp(object):
@@ -19,19 +27,88 @@ class ssh_burp(object):
         self.result = []
         self.lines = self.config.file2list("conf/ssh.conf")
 
+    def command(self, cmd, timeout=8):
+        '''
+        带超时的执行命令
+        :param cmd:
+        :param timeout:
+        :return:
+        '''
+        is_linux = platform.system() in ['Linux']
+        p = subprocess.Popen(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True,
+                             preexec_fn=os.setsid if is_linux else None)
+        t_beginning = time.time()
+        seconds_passed = 0
+        while True:
+            if p.poll() is not None:
+                break
+            seconds_passed = time.time() - t_beginning
+            if timeout and seconds_passed > timeout:
+                if is_linux:
+                    os.killpg(p.pid, signal.SIGTERM)
+                else:
+                    p.terminate()
+                raise TimeoutError(cmd, timeout, p)
+            time.sleep(0.1)
+        return p.stdout.read()
+
     def ssh_connect(self, ip, username, password, port):
-        try:
-            client = paramiko.SSHClient()
-            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            client.connect(ip, port, username=username, password=password)
-            return 1
-        except Exception, e:
-            if e[0] == 'Authentication failed.':
+        '''
+        连接ssh 安装了库就用库，没用安装而且是linux就用bash来登入
+        :param ip:
+        :param username:
+        :param password:
+        :param port:
+        :return:
+        '''
+        if isinstall == True:
+            try:
+                client = paramiko.SSHClient()
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                client.connect(ip, port, username=username, password=password)
+                return 1
+            except Exception, e:
+                if e[0] == 'Authentication failed.':
+                    return 0
+                else:
+                    return 2
+            finally:
+                client.close()
+        else:
+            try:
+                # login_match = '#|\$|>' 这样有误报
+                refused_match = 'refused'
+                denied_match = 'denied'
+                exe_file = '''#!/usr/bin/expect -f
+
+set user %s
+set password %s
+set host %s
+set port %s
+set timeout 4
+spawn ssh -p $port $user@$host
+expect "*assword:*"
+send "$password\\r"
+expect eof''' % (username, password, ip, port)
+                f = open('./bin/sshlogin', 'w')
+                f.write(exe_file)
+                f.close()
+
+                msg = self.command("./bin/sshlogin")
+
+                if re.search(refused_match, msg, re.IGNORECASE):
+                    # 连接拒绝
+                    return 2
+                elif not re.search(denied_match, msg, re.IGNORECASE):
+                    # 没有denied 说明登入成功
+                    return 1
+                else:
+                    # 登入失败
+                    return 0
+
+            except Exception, e:
+                print "[!] err:%s" % e
                 return 0
-            else:
-                return 2
-        finally:
-            client.close()
 
     def ssh_l(self, ip, port):
         try:
@@ -61,9 +138,10 @@ class ssh_burp(object):
             pass
 
     def run(self, ipdict, pinglist, threads, file):
-        if isinstall == False:
-            printRed("[!] 抱歉没有安装paramiko库，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
+        if isinstall == False and is_likelinux == False:
+            printRed("[!] 抱歉没有安装paramiko库，而且系统还是非类linux，所以ssh模块无效，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
             return
+
         if len(ipdict['ssh']):
             print "[*] crack ssh  now..."
             print "[*] start crack ssh  %s" % time.ctime()
@@ -91,7 +169,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ssh': ['xxx:22']}
+    ipdict = {'ssh': ['xxxx:22']}
     pinglist = ['xxx']
     test = ssh_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")

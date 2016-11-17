@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+
+set user root
+set password rootpass
+set host 10.211.55.5
+set port 22
+set timeout 4
+spawn ssh -p $port $user@$host
+expect "*assword:*"
+send "$password\r"
+expect eof
