@@ -4,7 +4,7 @@ import socket
 import select
 import time
 import threading
-from comm.printers import printRed
+from comm.printers import printGreen
 from multiprocessing.dummy import Pool
 
 
@@ -76,7 +76,7 @@ class ssl_burp(object):
             if typ == 24:
                 if len(pay) > 3:
                     self.lock.acquire()
-                    printRed(
+                    printGreen(
                         '[+] WARNING: %s ssl at %s returned more data than it should - server is vulnerable!\r\n' % (
                             ip, port))
                     self.result.append(
@@ -85,7 +85,7 @@ class ssl_burp(object):
                     self.lock.release()
                 else:
                     self.lock.acquire()
-                    printRed(
+                    printGreen(
                         '[+] %s ssl at %s processed malformed heartbeat, but did not return any extra data.\r\n' % (
                             ip, port))
                     self.result.append(
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'ssl': ['xxxxx:443']}
+    ipdict = {'ssl': ['xxx:443']}
     pinglist = ['xxx']
     test = ssl_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
