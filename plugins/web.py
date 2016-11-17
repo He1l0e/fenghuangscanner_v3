@@ -103,6 +103,7 @@ class web_burp(object):
                 pass
 
         except Exception, e:
+            print "[!] err:%e " % e
             pass
 
     def run(self, ipdict, pinglist, threads, file):

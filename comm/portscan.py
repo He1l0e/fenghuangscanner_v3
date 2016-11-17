@@ -33,6 +33,7 @@ class portscan():
         self.PROBES = [
             '\r\n\r\n',
             'GET / HTTP/1.0\r\n\r\n',
+            'stats\r\n',            
             'GET / \r\n\r\n',
             '\x01\x00\x00\x00\x01\x00\x00\x00\x08\x08',
             '\x80\0\0\x28\x72\xFE\x1D\x13\0\0\0\0\0\0\0\x02\0\x01\x86\xA0\0\x01\x97\x7C\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0',
