@@ -17,12 +17,12 @@ class telnet_burp(object):
         self.result = []
         self.lines = self.config.file2list("conf/telnet.conf")
 
-    def telnet_connect(self, ip, port, user, pass_, timeout=2):
+    def telnet_connect(self, ip, port, user, pass_, timeout=4):
         user_match = "(?i)(login|username)"
         pass_match = '(?i)(password|pass)'
         login_match = '#|\$|>'
         try:
-            tn = telnetlib.Telnet(ip, port)
+            tn = telnetlib.Telnet(ip, port, timeout=timeout)
             # tn.set_debuglevel(3)
             time.sleep(0.5)
             os = tn.read_some()
