@@ -2,7 +2,6 @@
 import time
 import threading
 from comm.printers import printGreen
-from multiprocessing.dummy import Pool
 import socket
 
 socket.setdefaulttimeout(8)

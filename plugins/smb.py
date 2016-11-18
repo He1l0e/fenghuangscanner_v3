@@ -11,7 +11,7 @@ try:
 except:
     isinstall = False
 import socket
-socket.setdefaulttimeout(10)
+socket.setdefaulttimeout(8)
 
 
 class smb_burp(object):
