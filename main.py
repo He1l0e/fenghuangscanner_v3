@@ -38,7 +38,7 @@ if __name__ == '__main__':
         filename = filename.split("/")[-1]
         file = "result/%s.txt" % filename
     else:
-        print "[!] error args"
+        print "[!] error args, try -h"
         sys.exit()
 
     isping = options.isping
