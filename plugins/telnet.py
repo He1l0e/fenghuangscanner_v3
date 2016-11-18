@@ -122,8 +122,6 @@ class telnet_burp(object):
         except Exception, e:
             print "[!] err: %s" % e
             return 0
-        finally:
-            tn.close()
 
     def telnet_creak(self, ip, port):
         try:
