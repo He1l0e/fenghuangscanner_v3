@@ -3,7 +3,7 @@
 ####wilson@wilson:~/tools/fenghuangscanner$ python main.py -h
 	usage: main.py [-h] [--ip IP] [--threads THREADS] [--P ISPING]
 	               [--p USER_PORTS] [--file FILE]
-	ports&*weak password scanner. teams:xdsec. author: wilson
+	ports&*weak password scanner. company:mogu security. teams:xdsec. author: wilson 
 	optional arguments:
 	  -h, --help         show this help message and exit
 	  --ip IP            必填,支持ip(192.168.1.1),ip段(192.168.1),(192.168.1.
@@ -22,6 +22,9 @@
     3.添加telnet爆破，去掉pop3，vnc爆破
     4.smb仍然依赖 impacket==0.9.13库，ssh还是依赖 paramiko==1.15.2(linux原生ssh客户端存在的话，也可以不安装paramiko库)
     5.丰富字典，这样扫描速度可能变慢
+
+####特别声明
+	本程序仅可用于授权的渗透测试以及自身的安全检测中。
 
 
 ####任何问题欢迎提issues

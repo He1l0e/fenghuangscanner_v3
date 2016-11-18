@@ -11,7 +11,7 @@ sys.setdefaultencoding('utf-8')
 
 if __name__ == '__main__':
     # 接受cmd参数
-    parser = OptionParser(description='ports&*weak password scanner. teams:xdsec.  author: wilson ')
+    parser = OptionParser(description='ports&*weak password scanner. company:mogu security. teams:xdsec. author: wilson ')
     parser.add_option('--ip', dest="ip", type="string",
                       help='必填,支持ip(192.168.1.1),ip段(192.168.1),(192.168.1.1-192.168.1.254),ip列表文件(ip.ini)')
     parser.add_option("--threads", action="store", dest="threads", type=int, default=50,
