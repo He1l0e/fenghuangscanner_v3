@@ -10,6 +10,8 @@ try:
     isinstall = True
 except:
     isinstall = False
+import socket
+socket.setdefaulttimeout(10)
 
 
 class smb_burp(object):
@@ -25,7 +27,8 @@ class smb_burp(object):
             smb.login(username, password)
             smb.logoff()
             return 1
-        except:
+        except Exception,e:
+            print e
             return 0
 
     def smb_l(self, ip, port):
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     from comm.config import *
 
     c = config()
-    ipdict = {'smb': ['xxx:445']}
+    ipdict = {'smb': ['10.211.55.3:445']}
     pinglist = ['xxxx']
     test = smb_burp(c)
     test.run(ipdict, pinglist, 50, file="../result/test")
