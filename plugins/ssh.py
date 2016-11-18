@@ -42,7 +42,7 @@ def command(cmd, timeout=8):
 
 try:
     if re.search("usage:", command("ssh"), re.IGNORECASE):
-        if not re.search("expect", command("not"), re.IGNORECASE):
+        if not re.search("not", command("expect"), re.IGNORECASE):
             # 有ssh命令
             has_sshclient = True
     else:
