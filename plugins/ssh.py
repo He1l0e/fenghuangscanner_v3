@@ -94,8 +94,11 @@ set user %s
 set password %s
 set host %s
 set port %s
-set timeout 4
+set timeout 1
 spawn ssh -p $port $user@$host
+expect "yes"
+send "yes\\r"
+set timeout 3
 expect "*assword:*"
 send "$password\\r"
 expect eof''' % (username, password, ip, port)
