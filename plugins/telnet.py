@@ -56,7 +56,7 @@ class telnet_burp(object):
                 tn.read_until(pass_match, timeout=timeout)
                 tn.write(str(pass_) + '\r\n')
                 login_info = tn.read_until(login_match, timeout=timeout)
-                print login_info
+                # print login_info
                 tn.close()
                 if re.search(login_match, login_info):
                     self.lock.acquire()
