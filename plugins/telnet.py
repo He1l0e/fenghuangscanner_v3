@@ -49,6 +49,7 @@ class telnet_burp(object):
                         self.lock.release()
                 except Exception, e:
                     print "[!] err:%s" % e
+                    return 3
                     pass
 
             # 版本信息匹配搭配密码，只爆破密码
