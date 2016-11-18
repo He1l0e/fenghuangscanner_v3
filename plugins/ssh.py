@@ -7,13 +7,47 @@ from comm.printers import printGreen, printRed
 try:
     import paramiko
 
-    isinstall = False
+    isinstall = True
 except:
     isinstall = False
 
 import platform, subprocess, os, signal, time
 
-is_likelinux = platform.system() in ['Linux', 'Darwin']
+
+def command(cmd, timeout=8):
+    '''
+    带超时的执行命令
+    :param cmd:
+    :param timeout:
+    :return:
+    '''
+    is_linux = platform.system() in ['Linux']
+    p = subprocess.Popen(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True,
+                         preexec_fn=os.setsid if is_linux else None)
+    t_beginning = time.time()
+    seconds_passed = 0
+    while True:
+        if p.poll() is not None:
+            break
+        seconds_passed = time.time() - t_beginning
+        if timeout and seconds_passed > timeout:
+            if is_linux:
+                os.killpg(p.pid, signal.SIGTERM)
+            else:
+                p.terminate()
+            raise TimeoutError(cmd, timeout, p)
+        time.sleep(0.1)
+    return p.stdout.read()
+
+
+try:
+    if re.search("usage:", command("ssh"), re.IGNORECASE):
+        # 有ssh命令
+        has_sshclient = True
+    else:
+        has_sshclient = False
+except:
+    has_sshclient = False
 
 
 class TimeoutError(Exception):
@@ -26,31 +60,6 @@ class ssh_burp(object):
         self.lock = threading.Lock()
         self.result = []
         self.lines = self.config.file2list("conf/ssh.conf")
-
-    def command(self, cmd, timeout=8):
-        '''
-        带超时的执行命令
-        :param cmd:
-        :param timeout:
-        :return:
-        '''
-        is_linux = platform.system() in ['Linux']
-        p = subprocess.Popen(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True,
-                             preexec_fn=os.setsid if is_linux else None)
-        t_beginning = time.time()
-        seconds_passed = 0
-        while True:
-            if p.poll() is not None:
-                break
-            seconds_passed = time.time() - t_beginning
-            if timeout and seconds_passed > timeout:
-                if is_linux:
-                    os.killpg(p.pid, signal.SIGTERM)
-                else:
-                    p.terminate()
-                raise TimeoutError(cmd, timeout, p)
-            time.sleep(0.1)
-        return p.stdout.read()
 
     def ssh_connect(self, ip, username, password, port):
         '''
@@ -94,7 +103,7 @@ expect eof''' % (username, password, ip, port)
                 f.write(exe_file)
                 f.close()
 
-                msg = self.command("./bin/sshlogin")
+                msg = command("./bin/sshlogin")
 
                 if re.search(refused_match, msg, re.IGNORECASE):
                     # 连接拒绝
@@ -138,8 +147,8 @@ expect eof''' % (username, password, ip, port)
             pass
 
     def run(self, ipdict, pinglist, threads, file):
-        if isinstall == False and is_likelinux == False:
-            printRed("[!] 抱歉没有安装paramiko库，而且系统还是非类linux，所以ssh模块无效，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
+        if isinstall == False and has_sshclient == False:
+            printRed("[!] 抱歉没有安装paramiko库，而且不能存在ssh客户端，所以ssh模块无效，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
             return
 
         if len(ipdict['ssh']):
