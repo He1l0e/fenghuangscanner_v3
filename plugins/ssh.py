@@ -148,7 +148,7 @@ expect eof''' % (username, password, ip, port)
 
     def run(self, ipdict, pinglist, threads, file):
         if isinstall == False and has_sshclient == False:
-            printRed("[!] 抱歉没有安装paramiko库，而且不能存在ssh客户端，所以ssh模块无效，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
+            printRed("[!] 抱歉没有安装paramiko库，而且不存在ssh客户端，所以ssh模块无效，如果你要爆破ssh弱口令，需要安装 paramiko 1.15.2")
             return
 
         if len(ipdict['ssh']):
