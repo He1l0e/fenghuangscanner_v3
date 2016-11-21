@@ -20,7 +20,7 @@
     1.根据 https://github.com/ysrc/F-Scrack 解决部分扫描依赖问题以及ip输入更人性化
     2.输出消息更加人性化
     3.添加telnet爆破，去掉pop3，vnc爆破
-    4.smb仍然依赖 impacket==0.9.13库，ssh还是依赖 paramiko==1.15.2(linux原生ssh客户端存在的话，也可以不安装paramiko库)
+    4.smb仍然依赖 impacket==0.9.13库，ssh还是依赖 paramiko==1.15.2
     5.丰富字典，这样扫描速度可能变慢
 
 ####特别声明
